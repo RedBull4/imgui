@@ -10078,6 +10078,8 @@ bool    ImGui::TableNextCell()
 {
     ImGuiContext& g = *GImGui;
     ImGuiTable* table = g.CurrentTable;
+    if (!table)
+        return false;
 
     if (table->CurrentColumn != -1 && table->CurrentColumn + 1 < table->ColumnsCount)
     {
@@ -10095,6 +10097,28 @@ bool    ImGui::TableNextCell()
 
     // FIXME-TABLE: it is likely to alter layout if user skips a columns contents based on clipping.
     return (table->VisibleUnclippedMaskByIndex & ((ImU64)1 << column_n)) != 0;
+}
+
+bool    ImGui::TableSetColumnIndex(int column_idx)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiTable* table = g.CurrentTable;
+    if (!table)
+        return false;
+
+    if (table->CurrentColumn != column_idx)
+    {
+        if (table->CurrentColumn != -1)
+            TableEndCell(table);
+        IM_ASSERT(column_idx >= 0 && table->ColumnsCount);
+        TableBeginCell(table, column_idx);
+    }
+
+    // FIXME-TABLE: Need to clarify if we want to allow IsItemHovered() here
+    //g.CurrentWindow->DC.LastItemStatusFlags = (column_n == table->HoveredColumn) ? ImGuiItemStatusFlags_HoveredRect : ImGuiItemStatusFlags_None;
+
+    // FIXME-TABLE: it is likely to alter layout if user skips a columns contents based on clipping.
+    return (table->VisibleUnclippedMaskByIndex & ((ImU64)1 << column_idx)) != 0;
 }
 
 int ImGui::TableGetColumnCount()
@@ -10134,28 +10158,6 @@ int     ImGui::TableGetColumnIndex()
     if (!table)
         return 0;
     return table->CurrentColumn;
-}
-
-bool    ImGui::TableSetColumnIndex(int column_idx)
-{
-    ImGuiContext& g = *GImGui;
-    ImGuiTable* table = g.CurrentTable;
-    if (!table)
-        return false;
-
-    if (table->CurrentColumn != column_idx)
-    {
-        if (table->CurrentColumn != -1)
-            TableEndCell(table);
-        IM_ASSERT(column_idx >= 0 && table->ColumnsCount);
-        TableBeginCell(table, column_idx);
-    }
-
-    // FIXME-TABLE: Need to clarify if we want to allow IsItemHovered() here
-    //g.CurrentWindow->DC.LastItemStatusFlags = (column_n == table->HoveredColumn) ? ImGuiItemStatusFlags_HoveredRect : ImGuiItemStatusFlags_None;
-
-    // FIXME-TABLE: it is likely to alter layout if user skips a columns contents based on clipping.
-    return (table->VisibleUnclippedMaskByIndex & ((ImU64)1 << column_idx)) != 0;
 }
 
 // Return the cell rectangle based on currently known height.
